@@ -21,7 +21,7 @@ else
 fi
 # Go one level up
 PREFIX_DIR=$(dirname ${PREFIX_DIR})
-node "${PREFIX_DIR}/share/openvscode-server/out/vs/server/main.js" "$@"
+node "${PREFIX_DIR}/share/openvscode-server/out/server-main.js" "$@"
 EOF
 chmod +x ${PREFIX}/bin/openvscode-server
 
