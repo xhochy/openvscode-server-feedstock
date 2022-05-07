@@ -1,5 +1,5 @@
 {% set name = "openvscode-server" %}
-{% set version = "1.65.0" %}
+{% set version = "1.67.0" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/gitpod-io/openvscode-server/releases/download/openvscode-server-v{{ version }}/openvscode-server-v{{ version }}-linux-x64.tar.gz  # [linux64]
-  sha256: a5ede74c7bb7d73f8c100b8637a628a210f18cb69cd1fccc64b8a5afffc801a5
+  sha256: 30750966526112b494cfa1fb445469568ea7587443d4762732049614d91d4235
   folder: openvscode-server
 
 build:
