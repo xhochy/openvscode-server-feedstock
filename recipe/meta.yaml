@@ -19,9 +19,9 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
-    - nodejs 14.*
+    - nodejs 16.*
   run:
-    - nodejs 14.*
+    - nodejs 16.*
 
 test:
   commands:
