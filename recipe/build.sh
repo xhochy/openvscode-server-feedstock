@@ -15,7 +15,9 @@ fi
 pushd src
 git init
 git add .
-git commit -m "placeholder commit" --no-verify --no-gpg-sign --author="conda smithy <noreply@example.com>"
+git config --local user.email 'noreply@example.com'
+git config --local user.name 'conda smithy'
+git commit -m "placeholder commit" --no-verify --no-gpg-sign
 yarn install
 yarn gulp vscode-reh-web-${ARCH_ALIAS}-min
 popd
