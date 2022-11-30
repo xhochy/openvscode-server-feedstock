@@ -14,6 +14,7 @@ fi
 
 pushd src
 git init
+git config core.precomposeunicode false
 git add .
 git config --local user.email 'noreply@example.com'
 git config --local user.name 'conda smithy'
