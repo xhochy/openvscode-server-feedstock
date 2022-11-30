@@ -2,8 +2,26 @@
 
 set -exuo pipefail
 
+if [[ "${target_platform}" == "linux-64" ]]; then
+  ARCH_ALIAS=linux-x64
+elif [[ "${target_platform}" == "linux-aarch64" ]]; then
+  ARCH_ALIAS=linux-arm64
+elif [[ "${target_platform}" == "osx-64" ]]; then
+  ARCH_ALIAS=darwin-x64
+elif [[ "${target_platform}" == "osx-arm64" ]]; then
+  ARCH_ALIAS=darwin-arm64
+fi
+
+pushd src
+git init
+git add .
+git commit -m "placeholder commit" --no-verify --no-gpg-sign
+yarn install
+yarn gulp vscode-reh-web-${ARCH_ALIAS}-min
+popd
+
 mkdir -p $PREFIX/share
-cp -r openvscode-server ${PREFIX}/share/
+cp -r vscode-reh-web-${ARCH_ALIAS} ${PREFIX}/share/openvscode-server
 rm -rf $PREFIX/share/openvscode-server/bin
 
 mkdir -p ${PREFIX}/bin
