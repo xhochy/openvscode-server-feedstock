@@ -18,6 +18,8 @@ cxx_compiler_version:
 - '10'
 docker_image:
 - quay.io/condaforge/linux-anvil-cos7-x86_64
+libsecret:
+- '0.18'
 target_platform:
 - linux-aarch64
 zip_keys:
