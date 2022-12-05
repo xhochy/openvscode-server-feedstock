@@ -2,6 +2,9 @@
 
 set -exuo pipefail
 
+rm $PREFIX/bin/node
+ln -s $BUILD_PREFIX/bin/node $PREFIX/bin/node
+
 if [[ "${target_platform}" == "linux-64" ]]; then
   ARCH_ALIAS=linux-x64
 elif [[ "${target_platform}" == "linux-aarch64" ]]; then
@@ -19,7 +22,19 @@ git add .
 git config --local user.email 'noreply@example.com'
 git config --local user.name 'conda smithy'
 git commit -m "placeholder commit" --no-verify --no-gpg-sign
-yarn install
+# Install build tools for build_platform
+(
+  unset CFLAGS
+  unset CXXFLAGS
+  unset CPPFLAGS
+  export CC=${CC_FOR_BUILD}
+  export CXX=${CXX_FOR_BUILD}
+  export AR="$($CC_FOR_BUILD -print-prog-name=ar)"
+  export NM="$($CC_FOR_BUILD -print-prog-name=nm)"
+  export LDFLAGS=${LDFLAGS//$PREFIX/$BUILD_PREFIX}
+  export PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig
+  yarn install
+)
 yarn gulp vscode-reh-web-${ARCH_ALIAS}-min
 popd
 
