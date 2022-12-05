@@ -28,12 +28,14 @@ requirements:
     # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
     - openssl <3
     - yarn
+    - ripgrep
     - glib         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
     - xorg-libx11  # [linux]
   run:
     - nodejs 16.*
+    - ripgrep
 
 test:
   commands:

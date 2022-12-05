@@ -50,5 +50,14 @@ chmod +x ${PREFIX}/bin/openvscode-server
 find ${PREFIX}/share/openvscode-server -name '*.map' -delete
 rm -rf ${PREFIX}/share/openvscode-server/node
 
+# Replace bundled ripgrep with conda package
+rm ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
+cat <<EOF >${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
+#!/bin/bash
+exec "${PREFIX}/bin/rg" "\$@"
+EOF
+chmod +x ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
+${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg --help
+
 # Directly check whether the openvscode-server call also works inside of conda-build
 openvscode-server --help
