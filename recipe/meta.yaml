@@ -36,6 +36,10 @@ requirements:
     - openssl <3
     - yarn
     - ripgrep
+    - glib         # [linux]
+    - libsecret    # [linux]
+    - libxkbfile   # [linux]
+    - xorg-libx11  # [linux]
   run:
     - nodejs 16.*
     - ripgrep

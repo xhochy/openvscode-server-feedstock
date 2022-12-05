@@ -9,10 +9,12 @@ if [[ "${target_platform}" == "linux-64" ]]; then
   ARCH_ALIAS=linux-x64
 elif [[ "${target_platform}" == "linux-aarch64" ]]; then
   ARCH_ALIAS=linux-arm64
+  export npm_config_arch="arm64"
 elif [[ "${target_platform}" == "osx-64" ]]; then
   ARCH_ALIAS=darwin-x64
 elif [[ "${target_platform}" == "osx-arm64" ]]; then
   ARCH_ALIAS=darwin-arm64
+  export npm_config_arch="arm64"
 fi
 
 pushd src
@@ -22,11 +24,16 @@ git add .
 git config --local user.email 'noreply@example.com'
 git config --local user.name 'conda smithy'
 git commit -m "placeholder commit" --no-verify --no-gpg-sign
+# Install remote extensions for target_platform
+pushd remote
+  yarn install
+popd
 # Install build tools for build_platform
 (
   unset CFLAGS
   unset CXXFLAGS
   unset CPPFLAGS
+  unset npm_config_arch
   export CC=${CC_FOR_BUILD}
   export CXX=${CXX_FOR_BUILD}
   export AR="$($CC_FOR_BUILD -print-prog-name=ar)"
