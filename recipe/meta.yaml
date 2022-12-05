@@ -24,6 +24,8 @@ requirements:
     - pkg-config
     - sysroot_linux-64 2.17  # [build_platform == 'linux-64']
     - nodejs 16.*
+    # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
+    - openssl <3
     - glib         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
