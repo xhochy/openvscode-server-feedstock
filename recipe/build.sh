@@ -79,7 +79,10 @@ cat <<EOF >${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
 exec "${PREFIX}/bin/rg" "\$@"
 EOF
 chmod +x ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
-${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg --help
 
-# Directly check whether the openvscode-server call also works inside of conda-build
-openvscode-server --help
+if [[ "${CROSSCOMPILING_EMULATOR}" != "" ]]; then
+  ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg --help
+
+  # Directly check whether the openvscode-server call also works inside of conda-build
+  openvscode-server --help
+fi
