@@ -1,11 +1,11 @@
-About openvscode-server
-=======================
+About openvscode-server-feedstock
+=================================
+
+Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/openvscode-server-feedstock/blob/main/LICENSE.txt)
 
 Home: https://github.com/gitpod-io/openvscode-server
 
 Package license: MIT
-
-Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/openvscode-server-feedstock/blob/main/LICENSE.txt)
 
 Summary: Run upstream VS Code on a remote machine with access through a modern web browser from any device, anywhere.
 
