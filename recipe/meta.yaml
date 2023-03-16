@@ -1,5 +1,5 @@
 {% set name = "openvscode-server" %}
-{% set version = "1.75.1" %}
+{% set version = "1.76.0" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/gitpod-io/openvscode-server/archive/refs/tags/openvscode-server-v{{ version }}.tar.gz
-  sha256: 1c723da6e75a374f9185fba5f5aa65be78b35564210153e4f1253ec9f38e71e2
+  sha256: 259a0f388b7cf2ffa500401b5b208a6794cd67ee3a8933a2d67247a51c123bc1
   folder: src
   patches:
     - 0001-Allow-running-on-subdir.patch
@@ -26,6 +26,7 @@ requirements:
     - nodejs 16.*
     # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
     - openssl <3
+    - jq
     - glib         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
