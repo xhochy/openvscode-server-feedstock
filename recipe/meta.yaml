@@ -26,6 +26,7 @@ requirements:
     - nodejs 16.*
     # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
     - openssl <3
+    - jq
     - glib         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
