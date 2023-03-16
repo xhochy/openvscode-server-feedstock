@@ -26,7 +26,14 @@ git config --local user.name 'conda smithy'
 git commit -m "placeholder commit" --no-verify --no-gpg-sign
 # Install remote extensions for target_platform
 pushd remote
+  VSCODE_RIPGREP_VERSION=$(jq -r '.dependencies."@vscode/ripgrep"' package.json)
+  # Install all dependencies except @vscode/ripgrep
+  mv package.json package.json.orig
+  jq 'del(.dependencies."@vscode/ripgrep")' package.json.orig > package.json
   yarn install
+  # Install @vscode/ripgrep without downloading the pre-built ripgrep.
+  # This often runs into Github API ratelimits and we won't use the binary in this package anyways.
+  yarn add --ignore-scripts "@vscode/ripgrep@${VSCODE_RIPGREP_VERSION}"
 popd
 # Install build tools for build_platform
 (
@@ -73,7 +80,7 @@ find ${PREFIX}/share/openvscode-server -name '*.map' -delete
 rm -rf ${PREFIX}/share/openvscode-server/node
 
 # Replace bundled ripgrep with conda package
-rm ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
+mkdir -p ${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin
 cat <<EOF >${PREFIX}/share/openvscode-server/node_modules/@vscode/ripgrep/bin/rg
 #!/bin/bash
 exec "${PREFIX}/bin/rg" "\$@"
