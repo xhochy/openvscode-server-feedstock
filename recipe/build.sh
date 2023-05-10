@@ -5,6 +5,8 @@ set -exuo pipefail
 rm $PREFIX/bin/node
 ln -s $BUILD_PREFIX/bin/node $PREFIX/bin/node
 
+export NODE_OPTIONS=--openssl-legacy-provider
+
 if [[ "${target_platform}" == "linux-64" ]]; then
   ARCH_ALIAS=linux-x64
 elif [[ "${target_platform}" == "linux-aarch64" ]]; then
