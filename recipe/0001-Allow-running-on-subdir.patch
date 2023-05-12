@@ -1,4 +1,4 @@
-From d71471e6e32d352813af304acad2526da766a3c7 Mon Sep 17 00:00:00 2001
+From c1b048ddd5109981b35c1e74272c856a6a81db7c Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Wed, 30 Nov 2022 17:37:46 +0100
 Subject: [PATCH] Allow running on subdir
@@ -11,14 +11,14 @@ Subject: [PATCH] Allow running on subdir
  src/vs/code/browser/workbench/workbench.ts    |  1 +
  .../common/extensionResourceLoader.ts         |  3 +-
  .../remote/browser/browserSocketFactory.ts    |  4 +-
- src/vs/server/node/webClientServer.ts         | 89 +++++++++++++++++--
- 8 files changed, 89 insertions(+), 17 deletions(-)
+ src/vs/server/node/webClientServer.ts         | 90 +++++++++++++++++--
+ 8 files changed, 90 insertions(+), 17 deletions(-)
 
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 3c706e3d277..3e4b5e9c886 100644
+index 096790c..683f951 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -162,7 +162,9 @@ class RemoteAuthoritiesImpl {
+@@ -167,7 +167,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -30,10 +30,10 @@ index 3c706e3d277..3e4b5e9c886 100644
  		});
  	}
 diff --git a/src/vs/base/common/product.ts b/src/vs/base/common/product.ts
-index 897d806cc62..31f184fb7f0 100644
+index 2526747..9acb53b 100644
 --- a/src/vs/base/common/product.ts
 +++ b/src/vs/base/common/product.ts
-@@ -32,6 +32,7 @@ export type ExtensionVirtualWorkspaceSupport = {
+@@ -56,6 +56,7 @@ export type ExtensionVirtualWorkspaceSupport = {
  
  export interface IProductConfiguration {
  	readonly version: string;
@@ -42,7 +42,7 @@ index 897d806cc62..31f184fb7f0 100644
  	readonly quality?: string;
  	readonly commit?: string;
 diff --git a/src/vs/code/browser/workbench/workbench-dev.html b/src/vs/code/browser/workbench/workbench-dev.html
-index be6d30bfb98..f64481579ca 100644
+index be6d30b..f644815 100644
 --- a/src/vs/code/browser/workbench/workbench-dev.html
 +++ b/src/vs/code/browser/workbench/workbench-dev.html
 @@ -38,7 +38,7 @@
@@ -55,7 +55,7 @@ index be6d30bfb98..f64481579ca 100644
  			self.webPackagePaths[key] = `${baseUrl}/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index a41b5dbf7bd..68b9c4a6765 100644
+index a41b5db..68b9c4a 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
 @@ -36,7 +36,7 @@
@@ -68,7 +68,7 @@ index a41b5dbf7bd..68b9c4a6765 100644
  			self.webPackagePaths[key] = `${baseUrl}/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index cc049b16cce..9088d451540 100644
+index cc049b1..9088d45 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -489,6 +489,7 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
@@ -80,7 +80,7 @@ index cc049b16cce..9088d451540 100644
  }
  
 diff --git a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts b/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-index 6991120b691..9079d8b786b 100644
+index 8347b3d..7e3c36b 100644
 --- a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ b/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 @@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/platform/externalServices/common/service
@@ -90,7 +90,7 @@ index 6991120b691..9079d8b786b 100644
 -import { RemoteAuthorities } from 'vs/base/common/network';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
- export const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
+ const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
 @@ -75,7 +74,7 @@ export abstract class AbstractExtensionResourceLoaderService implements IExtensi
  	public getExtensionGalleryResourceURL(galleryExtension: { publisher: string; name: string; version: string }, path?: string): URI | undefined {
  		if (this._extensionGalleryResourceUrlTemplate) {
@@ -101,7 +101,7 @@ index 6991120b691..9079d8b786b 100644
  		return undefined;
  	}
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
-index 0998b898ea9..70b526c4fd8 100644
+index 0998b89..70b526c 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserSocketFactory.ts
 @@ -274,6 +274,7 @@ export class BrowserSocketFactory implements ISocketFactory {
@@ -120,7 +120,7 @@ index 0998b898ea9..70b526c4fd8 100644
 -
 -
 diff --git a/src/vs/server/node/webClientServer.ts b/src/vs/server/node/webClientServer.ts
-index 82d88edf26f..228ff595fcd 100644
+index da5215c..a15de9a 100644
 --- a/src/vs/server/node/webClientServer.ts
 +++ b/src/vs/server/node/webClientServer.ts
 @@ -267,12 +267,11 @@ export class WebClientServer {
@@ -141,24 +141,20 @@ index 82d88edf26f..228ff595fcd 100644
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
  		}
-@@ -298,6 +297,8 @@ export class WebClientServer {
+@@ -298,8 +297,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
 +		const base = relativeRoot(getOriginalUrl(req))
-+		const vscodeBase = relativePath(getOriginalUrl(req))
- 
- 		const workbenchWebConfiguration = {
- 			remoteAuthority,
-@@ -309,6 +310,7 @@ export class WebClientServer {
- 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 			productConfiguration: <Partial<IProductConfiguration>>{
- 				embedderIdentifier: 'server-distro',
-+				rootEndpoint: base,
- 				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 					...this._productService.extensionsGallery,
- 					'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
-@@ -325,8 +327,10 @@ export class WebClientServer {
++                const vscodeBase = relativePath(getOriginalUrl(req))
++
+ 		const productConfiguration = <Partial<IProductConfiguration>>{
+ 			embedderIdentifier: 'server-distro',
++			rootEndpoint: base,
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 				...this._productService.extensionsGallery,
+ 				'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
+@@ -333,8 +336,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -171,7 +167,7 @@ index 82d88edf26f..228ff595fcd 100644
  		};
  
  
-@@ -343,7 +347,7 @@ export class WebClientServer {
+@@ -351,7 +356,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -179,8 +175,8 @@ index 82d88edf26f..228ff595fcd 100644
 +			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
- 			'worker-src \'self\' data:;',
-@@ -416,3 +420,70 @@ export class WebClientServer {
+ 			'worker-src \'self\' data: blob:;',
+@@ -424,3 +429,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -252,5 +248,5 @@ index 82d88edf26f..228ff595fcd 100644
 +	return (req as any).originalUrl || req.url
 +}
 -- 
-2.37.1 (Apple Git-137.1)
+2.39.2 (Apple Git-143)
 
