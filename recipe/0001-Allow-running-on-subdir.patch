@@ -1,4 +1,4 @@
-From c1b048ddd5109981b35c1e74272c856a6a81db7c Mon Sep 17 00:00:00 2001
+From 3515e09b2071cdb79114d35f9f9148ec57db011a Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Wed, 30 Nov 2022 17:37:46 +0100
 Subject: [PATCH] Allow running on subdir
@@ -10,12 +10,12 @@ Subject: [PATCH] Allow running on subdir
  src/vs/code/browser/workbench/workbench.html  |  2 +-
  src/vs/code/browser/workbench/workbench.ts    |  1 +
  .../common/extensionResourceLoader.ts         |  3 +-
- .../remote/browser/browserSocketFactory.ts    |  4 +-
+ .../remote/browser/browserSocketFactory.ts    |  1 +
  src/vs/server/node/webClientServer.ts         | 90 +++++++++++++++++--
- 8 files changed, 90 insertions(+), 17 deletions(-)
+ 8 files changed, 90 insertions(+), 14 deletions(-)
 
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 096790c..683f951 100644
+index ab7e3a1..94746a5 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
 @@ -167,7 +167,9 @@ class RemoteAuthoritiesImpl {
@@ -30,7 +30,7 @@ index 096790c..683f951 100644
  		});
  	}
 diff --git a/src/vs/base/common/product.ts b/src/vs/base/common/product.ts
-index 2526747..9acb53b 100644
+index ac9cd5d..8dcbcbc 100644
 --- a/src/vs/base/common/product.ts
 +++ b/src/vs/base/common/product.ts
 @@ -56,6 +56,7 @@ export type ExtensionVirtualWorkspaceSupport = {
@@ -68,10 +68,10 @@ index a41b5db..68b9c4a 100644
  			self.webPackagePaths[key] = `${baseUrl}/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index cc049b1..9088d45 100644
+index e1d00ab..35070fb 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -489,6 +489,7 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
+@@ -484,6 +484,7 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
  		});
  	}
  
@@ -80,7 +80,7 @@ index cc049b1..9088d45 100644
  }
  
 diff --git a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts b/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-index 8347b3d..7e3c36b 100644
+index e63c48d..d148e47 100644
 --- a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ b/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 @@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/platform/externalServices/common/service
@@ -89,36 +89,29 @@ index 8347b3d..7e3c36b 100644
  import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
 -import { RemoteAuthorities } from 'vs/base/common/network';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
+ import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
  
- const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
-@@ -75,7 +74,7 @@ export abstract class AbstractExtensionResourceLoaderService implements IExtensi
- 	public getExtensionGalleryResourceURL(galleryExtension: { publisher: string; name: string; version: string }, path?: string): URI | undefined {
- 		if (this._extensionGalleryResourceUrlTemplate) {
- 			const uri = URI.parse(format2(this._extensionGalleryResourceUrlTemplate, { publisher: galleryExtension.publisher, name: galleryExtension.name, version: galleryExtension.version, path: 'extension' }));
+@@ -102,7 +101,7 @@ export abstract class AbstractExtensionResourceLoaderService implements IExtensi
+ 					: version,
+ 				path: 'extension'
+ 			}));
 -			return this._isWebExtensionResourceEndPoint(uri) ? uri.with({ scheme: RemoteAuthorities.getPreferredWebSchema() }) : uri;
 +			return this._isWebExtensionResourceEndPoint(uri) ? URI.joinPath(URI.parse(window.location.href), uri.path) : uri;
  		}
  		return undefined;
  	}
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
-index 0998b89..70b526c 100644
+index 765b2f3..4d341bd 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -274,6 +274,7 @@ export class BrowserSocketFactory implements ISocketFactory {
- 
- 	connect(host: string, port: number, path: string, query: string, debugLabel: string, callback: IConnectCallback): void {
- 		const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
-+		path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 		const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
- 		const errorListener = socket.onError((err) => callback(err, undefined));
- 		socket.onOpen(() => {
-@@ -282,6 +283,3 @@ export class BrowserSocketFactory implements ISocketFactory {
- 		});
- 	}
- }
--
--
--
+@@ -280,6 +280,7 @@ export class BrowserSocketFactory implements ISocketFactory<RemoteConnectionType
+ 	connect({ host, port }: WebSocketRemoteConnection, path: string, query: string, debugLabel: string): Promise<ISocket> {
+ 		return new Promise<ISocket>((resolve, reject) => {
+ 			const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
++			path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
+ 			const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
+ 			const errorListener = socket.onError(reject);
+ 			socket.onOpen(() => {
 diff --git a/src/vs/server/node/webClientServer.ts b/src/vs/server/node/webClientServer.ts
 index da5215c..a15de9a 100644
 --- a/src/vs/server/node/webClientServer.ts
