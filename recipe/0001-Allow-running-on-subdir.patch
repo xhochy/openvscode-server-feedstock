@@ -1,4 +1,4 @@
-From 3515e09b2071cdb79114d35f9f9148ec57db011a Mon Sep 17 00:00:00 2001
+From 42368c4562e1db154f336580113e83b9917a3027 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Wed, 30 Nov 2022 17:37:46 +0100
 Subject: [PATCH] Allow running on subdir
@@ -11,14 +11,14 @@ Subject: [PATCH] Allow running on subdir
  src/vs/code/browser/workbench/workbench.ts    |  1 +
  .../common/extensionResourceLoader.ts         |  3 +-
  .../remote/browser/browserSocketFactory.ts    |  1 +
- src/vs/server/node/webClientServer.ts         | 90 +++++++++++++++++--
- 8 files changed, 90 insertions(+), 14 deletions(-)
+ src/vs/server/node/webClientServer.ts         | 92 ++++++++++++++++---
+ 8 files changed, 88 insertions(+), 18 deletions(-)
 
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index ab7e3a1..94746a5 100644
+index b00899c..87cca67 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -167,7 +167,9 @@ class RemoteAuthoritiesImpl {
+@@ -168,7 +168,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -30,7 +30,7 @@ index ab7e3a1..94746a5 100644
  		});
  	}
 diff --git a/src/vs/base/common/product.ts b/src/vs/base/common/product.ts
-index ac9cd5d..8dcbcbc 100644
+index 7cc06b4..b77dab6 100644
 --- a/src/vs/base/common/product.ts
 +++ b/src/vs/base/common/product.ts
 @@ -56,6 +56,7 @@ export type ExtensionVirtualWorkspaceSupport = {
@@ -113,10 +113,10 @@ index 765b2f3..4d341bd 100644
  			const errorListener = socket.onError(reject);
  			socket.onOpen(() => {
 diff --git a/src/vs/server/node/webClientServer.ts b/src/vs/server/node/webClientServer.ts
-index da5215c..a15de9a 100644
+index f734e11..26ce57a 100644
 --- a/src/vs/server/node/webClientServer.ts
 +++ b/src/vs/server/node/webClientServer.ts
-@@ -267,12 +267,11 @@ export class WebClientServer {
+@@ -268,17 +268,12 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -125,16 +125,21 @@ index da5215c..a15de9a 100644
 -			return Array.isArray(val) ? val[0] : val;
 -		};
 -
--		const remoteAuthority = getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host;
+ 		const useTestResolver = (!this._environmentService.isBuilt && this._environmentService.args['use-test-resolver']);
+-		const remoteAuthority = (
+-			useTestResolver
+-				? 'test+test'
+-				: (getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host)
+-		);
 +		// For now we are getting the remote authority from the client to avoid
-+		// needing specific configuration for reverse proxies to work.  Set this to
-+		// something invalid to make sure we catch code that is using this value
-+		// from the backend when it should not.
-+		const remoteAuthority = 'remote';
++                // needing specific configuration for reverse proxies to work.  Set this to
++                // something invalid to make sure we catch code that is using this value
++                // from the backend when it should not.
++               const remoteAuthority = 'remote';
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
  		}
-@@ -298,8 +297,12 @@ export class WebClientServer {
+@@ -304,8 +299,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -147,7 +152,7 @@ index da5215c..a15de9a 100644
  			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  				...this._productService.extensionsGallery,
  				'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
-@@ -333,8 +336,10 @@ export class WebClientServer {
+@@ -339,8 +338,8 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -155,21 +160,19 @@ index da5215c..a15de9a 100644
 -			WORKBENCH_NLS_BASE_URL: nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : '',
 +			WORKBENCH_WEB_BASE_URL: vscodeBase + this._staticRoute,
 +			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
-+			BASE: base,
-+			VS_BASE: vscodeBase,
  		};
  
- 
-@@ -351,7 +356,7 @@ export class WebClientServer {
+ 		if (useTestResolver) {
+@@ -365,7 +364,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
--			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' http://${remoteAuthority};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+-			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
 +			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -424,3 +429,70 @@ export class WebClientServer {
+@@ -438,3 +437,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
