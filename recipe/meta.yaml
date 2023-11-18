@@ -1,5 +1,5 @@
 {% set name = "openvscode-server" %}
-{% set version = "1.80.2" %}
+{% set version = "1.81.0" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/gitpod-io/openvscode-server/archive/refs/tags/openvscode-server-v{{ version }}.tar.gz
-  sha256: 4541bf0b1d99c23001783ff2c8c26495553a0214eec8251069b26499a5723aa1
+  sha256: 7a6c0b60696f99d49d748e21d27a4dec08dc527e0801c1de7370b1a56912b247
   folder: src
   patches:
     - 0001-Allow-running-on-subdir.patch
@@ -28,6 +28,7 @@ requirements:
     - openssl
     - jq
     - glib         # [linux]
+    - krb5         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
     - xorg-libx11  # [linux]
@@ -38,6 +39,7 @@ requirements:
     - yarn <2
     - ripgrep
     - glib         # [linux]
+    - krb5         # [linux]
     - libsecret    # [linux]
     - libxkbfile   # [linux]
     - xorg-libx11  # [linux]

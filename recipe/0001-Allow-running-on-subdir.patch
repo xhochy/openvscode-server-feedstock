@@ -1,4 +1,4 @@
-From 42368c4562e1db154f336580113e83b9917a3027 Mon Sep 17 00:00:00 2001
+From a2d1acf024877a04ae6b4c91dab796c03851260d Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Wed, 30 Nov 2022 17:37:46 +0100
 Subject: [PATCH] Allow running on subdir
@@ -8,11 +8,11 @@ Subject: [PATCH] Allow running on subdir
  src/vs/base/common/product.ts                 |  1 +
  .../code/browser/workbench/workbench-dev.html |  2 +-
  src/vs/code/browser/workbench/workbench.html  |  2 +-
- src/vs/code/browser/workbench/workbench.ts    |  1 +
+ src/vs/code/browser/workbench/workbench.ts    |  3 +-
  .../common/extensionResourceLoader.ts         |  3 +-
  .../remote/browser/browserSocketFactory.ts    |  1 +
  src/vs/server/node/webClientServer.ts         | 92 ++++++++++++++++---
- 8 files changed, 88 insertions(+), 18 deletions(-)
+ 8 files changed, 89 insertions(+), 19 deletions(-)
 
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index b00899c..87cca67 100644
@@ -55,7 +55,7 @@ index be6d30b..f644815 100644
  			self.webPackagePaths[key] = `${baseUrl}/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index a41b5db..68b9c4a 100644
+index addc28f..845ae62 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
 @@ -36,7 +36,7 @@
@@ -68,17 +68,19 @@ index a41b5db..68b9c4a 100644
  			self.webPackagePaths[key] = `${baseUrl}/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index e1d00ab..35070fb 100644
+index 5c7ae78..1005c44 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -484,6 +484,7 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
- 		});
+@@ -144,7 +144,8 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
+ 			this.startListening();
+ 		}
+ 
+-		return URI.parse(window.location.href).with({ path: this._callbackRoute, query: queryParams.join('&') });
++		const path = (window.location.pathname + "/" + this._callbackRoute).replace(/\/\/+/g, "/");
++		return URI.parse(window.location.href).with({ path: path, query: queryParams.join('&') });
  	}
  
-+	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 	return URI.parse(window.location.href).with({ path, query });
- }
- 
+ 	private startListening(): void {
 diff --git a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts b/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 index e63c48d..d148e47 100644
 --- a/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts

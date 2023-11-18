@@ -39,8 +39,8 @@ pushd remote
 popd
 # Install build tools for build_platform
 (
-  unset CFLAGS
-  unset CXXFLAGS
+  export CFLAGS="-isystem ${BUILD_PREFIX}/include -O2"
+  export CXXFLAGS="-isystem ${BUILD_PREFIX}/include -O2"
   unset CPPFLAGS
   unset npm_config_arch
   export CC=${CC_FOR_BUILD}
