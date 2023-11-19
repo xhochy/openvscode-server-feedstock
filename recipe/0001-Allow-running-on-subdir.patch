@@ -1,4 +1,4 @@
-From a2d1acf024877a04ae6b4c91dab796c03851260d Mon Sep 17 00:00:00 2001
+From 2721c650080960b550a032f992c373becf8b1764 Mon Sep 17 00:00:00 2001
 From: "Uwe L. Korn" <uwe.korn@quantco.com>
 Date: Wed, 30 Nov 2022 17:37:46 +0100
 Subject: [PATCH] Allow running on subdir
@@ -30,7 +30,7 @@ index b00899c..87cca67 100644
  		});
  	}
 diff --git a/src/vs/base/common/product.ts b/src/vs/base/common/product.ts
-index 7cc06b4..b77dab6 100644
+index ea129e9..5aa8b0f 100644
 --- a/src/vs/base/common/product.ts
 +++ b/src/vs/base/common/product.ts
 @@ -56,6 +56,7 @@ export type ExtensionVirtualWorkspaceSupport = {
@@ -68,10 +68,10 @@ index addc28f..845ae62 100644
  			self.webPackagePaths[key] = `${baseUrl}/node_modules/${key}/${self.webPackagePaths[key]}`;
  		});
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 5c7ae78..1005c44 100644
+index 174a2f6..cdeebf9 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -144,7 +144,8 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
+@@ -304,7 +304,8 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
  			this.startListening();
  		}
  
@@ -115,10 +115,10 @@ index 765b2f3..4d341bd 100644
  			const errorListener = socket.onError(reject);
  			socket.onOpen(() => {
 diff --git a/src/vs/server/node/webClientServer.ts b/src/vs/server/node/webClientServer.ts
-index f734e11..26ce57a 100644
+index 1f012ed..6fd9860 100644
 --- a/src/vs/server/node/webClientServer.ts
 +++ b/src/vs/server/node/webClientServer.ts
-@@ -268,17 +268,12 @@ export class WebClientServer {
+@@ -269,17 +269,12 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -141,20 +141,19 @@ index f734e11..26ce57a 100644
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
  		}
-@@ -304,8 +299,12 @@ export class WebClientServer {
+@@ -305,7 +300,11 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
 +		const base = relativeRoot(getOriginalUrl(req))
-+                const vscodeBase = relativePath(getOriginalUrl(req))
++		const vscodeBase = relativePath(getOriginalUrl(req))
 +
  		const productConfiguration = <Partial<IProductConfiguration>>{
- 			embedderIdentifier: 'server-distro',
-+			rootEndpoint: base,
- 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 				...this._productService.extensionsGallery,
- 				'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
-@@ -339,8 +338,8 @@ export class WebClientServer {
+++			rootEndpoint: base,
+ 			// embedderIdentifier: 'server-distro',
+ 			// extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 			// 	...this._productService.extensionsGallery,
+@@ -340,8 +339,8 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -165,7 +164,7 @@ index f734e11..26ce57a 100644
  		};
  
  		if (useTestResolver) {
-@@ -365,7 +364,7 @@ export class WebClientServer {
+@@ -366,7 +365,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -174,7 +173,7 @@ index f734e11..26ce57a 100644
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -438,3 +437,70 @@ export class WebClientServer {
+@@ -439,3 +438,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -246,5 +245,5 @@ index f734e11..26ce57a 100644
 +	return (req as any).originalUrl || req.url
 +}
 -- 
-2.39.2 (Apple Git-143)
+2.39.3 (Apple Git-145)
 
