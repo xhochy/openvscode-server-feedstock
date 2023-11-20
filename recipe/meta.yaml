@@ -24,6 +24,7 @@ requirements:
     - make
     - pkg-config
     - nodejs 18.*
+    - node-gyp
     # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
     - openssl
     - jq
