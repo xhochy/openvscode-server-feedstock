@@ -17,7 +17,7 @@ docker_image:
 glib:
 - '2'
 krb5:
-- '1.20'
+- '1.21'
 libsecret:
 - '0.18'
 openssl:
