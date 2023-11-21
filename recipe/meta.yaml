@@ -13,7 +13,7 @@ source:
     - 0001-Allow-running-on-subdir.patch
 
 build:
-  number: 0
+  number: 1
   skip: true  # [win]
 
 requirements:
@@ -24,6 +24,7 @@ requirements:
     - make
     - pkg-config
     - nodejs 18.*
+    - node-gyp
     # We might need to ensure that we recompile all third-party deps to support OpenSSL 3+
     - openssl
     - jq
